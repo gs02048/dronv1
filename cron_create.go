@@ -13,12 +13,17 @@ var (
 func StartCron(){
 	ismaster = make(chan bool,1)
 	go elect()
-	crontab = cron.New()
 	for{
 		select{
 		case m := <-ismaster:
+			crontab = cron.New()
 			if m{
-				crontab.AddFunc("",func(){})
+				cronlist,_ := zk.ListCron(ZkConn)
+				for _,item := range(cronlist){
+					crontab.AddFunc(item.Spece,func(){
+						log.Debug(item.Command)
+					})
+				}
 				log.Info("run cron")
 				crontab.Run()
 			}else{
