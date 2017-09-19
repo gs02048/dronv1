@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 	"encoding/json"
-	"dron/define"
+	"dronv1/define"
 )
 
 var (

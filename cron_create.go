@@ -1,7 +1,7 @@
 package main
 
 import (
-	"dron/zk"
+	"dronv1/zk"
 	log"github.com/alecthomas/log4go"
 	"github.com/robfig/cron"
 )

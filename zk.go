@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/samuel/go-zookeeper/zk"
-	myzk "dron/zk"
+	myzk "dronv1/zk"
 	"time"
 	log "github.com/alecthomas/log4go"
 )
