@@ -4,6 +4,7 @@ import (
 	"dronv1/zk"
 	log"github.com/alecthomas/log4go"
 	"github.com/robfig/cron"
+	"os/exec"
 )
 var (
 	ismaster chan bool
@@ -21,7 +22,9 @@ func StartCron(){
 				cronlist,_ := zk.ListCron(ZkConn)
 				for _,item := range(cronlist){
 					crontab.AddFunc(item.Spece,func(){
-						log.Debug(item.Command)
+						cmd := exec.Command("/bin/sh","-c",item.Command)
+						output,_ := cmd.Output()
+						log.Info("result:%s",string(output))
 					})
 				}
 				log.Info("run cron")
