@@ -9,6 +9,7 @@ import (
 	"dronv1/zk"
 	"fmt"
 	"encoding/json"
+	"io"
 )
 
 func InitAdminHttp(port string){
@@ -40,7 +41,7 @@ func ListService(w http.ResponseWriter,r *http.Request){
 }
 
 func PutService(w http.ResponseWriter,r *http.Request){
-	
+	io.WriteString(w,)
 }
 
 func retWrite(w http.ResponseWriter, r *http.Request, res map[string]interface{}, callback string, start time.Time) {
