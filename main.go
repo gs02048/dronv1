@@ -9,14 +9,18 @@ import (
 
 func main(){
 	cmd := flag.String("cmd","","cmd")
+	adminport := flag.String("port","9999","admin port")
 	flag.Parse()
 	if *cmd == "cron"{
 		InitZk()
-		StartCron()
+		go StartCron()
 	}else if *cmd == "run" {
 		InitZk()
 		InitHttp()
-	}else{
+	}else if *cmd == "admin"{
+		InitZk()
+		InitAdminHttp(*adminport)
+	} else{
 		log.Info("cmd err")
 		os.Exit(1)
 	}

@@ -10,7 +10,7 @@ import (
 // InitSignal register signals handler.
 func InitSignal() chan os.Signal {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGSTOP)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT, syscall.SIGSTOP,syscall.SIGKILL)
 	return c
 }
 
