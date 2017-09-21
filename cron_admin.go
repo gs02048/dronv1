@@ -9,12 +9,15 @@ import (
 	"dronv1/zk"
 	"fmt"
 	"encoding/json"
+	"io/ioutil"
+	"dronv1/define"
+	"errors"
 )
 
 func InitAdminHttp(port string){
 	httpServeMux := http.NewServeMux()
 	httpServeMux.HandleFunc("/v1/list",ListService)
-	httpServeMux.HandleFunc("/v1/put",PutService)
+	httpServeMux.HandleFunc("/v1/put",CreateService)
 
 	httpServer := &http.Server{Handler:httpServeMux,ReadTimeout:1*time.Second,WriteTimeout:1*time.Second}
 	httpServer.SetKeepAlivesEnabled(true)
@@ -28,6 +31,7 @@ func InitAdminHttp(port string){
 }
 
 
+
 func ListService(w http.ResponseWriter,r *http.Request){
 	list,err := zk.ListCron(ZkConn)
 	if err != nil{
@@ -39,8 +43,29 @@ func ListService(w http.ResponseWriter,r *http.Request){
 	return
 }
 
-func PutService(w http.ResponseWriter,r *http.Request){
-	
+func CreateService(w http.ResponseWriter,r *http.Request){
+	ret := map[string]interface{}{"ret":"ok"}
+	b,err := ioutil.ReadAll(r.Body)
+	if err != nil{
+		ret["err"] = err
+		retWrite(w,r,ret,"",time.Now())
+		return
+	}
+	c := &define.CronLine{}
+	if err := json.Unmarshal(b,c);err != nil{
+		ret["err"] = err
+		retWrite(w,r,ret,"",time.Now())
+		return
+	}
+	log.Debug(c)
+	if c.Name == ""{
+		ret["err"] = errors.New("cron name error")
+		retWrite(w,r,ret,"",time.Now())
+		return
+	}
+	zk.RegisterCron(ZkConn,"",b)
+	retWrite(w,r,ret,"",time.Now())
+	return
 }
 
 func retWrite(w http.ResponseWriter, r *http.Request, res map[string]interface{}, callback string, start time.Time) {
