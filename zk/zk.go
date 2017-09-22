@@ -77,26 +77,6 @@ func createPath(path string, data []byte, client *zk.Conn) error {
 	return err
 }
 
-// Create create zookeeper path, if path exists ignore error
-func Create(conn *zk.Conn, fpath string) error {
-	// create zk root path
-	tpath := ""
-	for _, str := range strings.Split(fpath, "/")[1:] {
-		tpath = path.Join(tpath, "/", str)
-		log.Debug("create zookeeper path: \"%s\"", tpath)
-		_, err := conn.Create(tpath, []byte(""), 0, zk.WorldACL(zk.PermAll))
-		if err != nil {
-			if err == zk.ErrNodeExists {
-				log.Warn("zk.create(\"%s\") exists", tpath)
-			} else {
-				log.Error("zk.create(\"%s\") error(%v)", tpath, err)
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func RegisterCron(conn *zk.Conn,fpath string,data []byte)(error){
 	cron := &define.CronLine{}
