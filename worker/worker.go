@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"errors"
 	"strings"
+	"encoding/json"
 )
 
 /**
@@ -72,6 +73,8 @@ func (w *Worker) RunScriptTask(job *Job){
 	}
 	
 	job.EndRunTime = time.Now().Unix()
+	data,_ := json.Marshal(job)
+	fmt.Println(string(data))
 	delete(w.Runing,job.Uuid)
 }
 
@@ -92,7 +95,7 @@ func (w *Worker) CmdRunWithTimeout(cmd *exec.Cmd, timeout time.Duration) (error,
 		go func() {
 			<-done // allow goroutine to exit
 		}()
-		return errors.New("err exec timeout"), true
+		return errors.New("exec timeout"), true
 	case err = <-done:
 		return err, false
 	}

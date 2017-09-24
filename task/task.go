@@ -7,6 +7,7 @@ const (
 )
 type Task struct {
 	TaskName string `json:"name"`
+	Desc string `json:"desc"`
 	Command string `json:"command"`
 	Args string `json:"args"`
 	Path string `json:"path"`

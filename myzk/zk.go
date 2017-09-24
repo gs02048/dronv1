@@ -44,8 +44,9 @@ func (r *Register)ListTask()([]*task.Task,error){
 		return nil,err
 	}
 	tasklist := make([]*task.Task,len(chs))
-	item := &task.Task{}
+
 	for k,v := range(chs){
+		item := &task.Task{}
 		line,_,err := r.Conn.Get(r.Prefix+"/"+v)
 		if err != nil{
 			continue
