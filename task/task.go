@@ -12,7 +12,7 @@ type Task struct {
 	Args string `json:"args"`
 	Path string `json:"path"`
 	Spec string `json:"spec"`
-	TaskType int `json:"type"`
+	TaskType int64 `json:"type"`
 	MaxRunTime int64 `json:"max_run_time"`
 }
 

@@ -7,11 +7,10 @@ import (
 	log"github.com/alecthomas/log4go"
 
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
-	"errors"
 	"dronv1/myzk"
 	"dronv1/task"
+	"strconv"
 )
 type Admin struct {
 	Cfg *Config
@@ -69,27 +68,43 @@ func (a *Admin)ListService(w http.ResponseWriter,r *http.Request){
 }
 
 func (a *Admin)CreateService(w http.ResponseWriter,r *http.Request){
-	ret := map[string]interface{}{"ret":"ok"}
-	b,err := ioutil.ReadAll(r.Body)
-	if err != nil{
-		ret["err"] = err
-		retWrite(w,r,ret,"",time.Now())
+	if r.Method != "GET"{
+		http.Error(w,"method not allowed",405)
 		return
 	}
-	c := &task.Task{}
-	if err := json.Unmarshal(b,c);err != nil{
-		ret["err"] = err
-		retWrite(w,r,ret,"",time.Now())
+	params := r.URL.Query()
+	taskname := params.Get("taskname")
+	desc := params.Get("desc")
+	cmd := params.Get("command")
+	args := params.Get("args")
+	path := params.Get("path")
+	spec := params.Get("spec")
+	ty := params.Get("tasktype")
+	var tasktype,maxruntime int64
+	tasktype,_ = strconv.ParseInt(ty,10,64)
+	mrt := params.Get("maxruntime")
+	maxruntime,_ = strconv.ParseInt(mrt,10,64)
+
+	res := map[string]interface{}{"ret":"ok"}
+	defer retWrite(w,r,res,"",time.Now())
+	if taskname == "" || cmd == "" || desc == "" || spec == "" || maxruntime <= 0{
+		res["ret"] = "param err"
 		return
 	}
-	log.Debug(c)
-	if c.TaskName == ""{
-		ret["err"] = errors.New("cron name error")
-		retWrite(w,r,ret,"",time.Now())
-		return
+
+	t := &task.Task{
+		TaskName:taskname,
+		Desc:desc,
+		Command:cmd,
+		Args:args,
+		Path:path,
+		Spec:spec,
+		TaskType:tasktype,
+		MaxRunTime:maxruntime,
 	}
-	a.TaskReg.RegisterTask(c)
-	retWrite(w,r,ret,"",time.Now())
+	cpath,err := a.TaskReg.RegisterTask(t)
+	res["cpath"] = cpath
+	res["err"] = err
 	return
 }
 
