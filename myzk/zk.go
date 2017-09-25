@@ -9,6 +9,13 @@ import (
 	"encoding/json"
 	"syscall"
 	"os"
+	"errors"
+	"fmt"
+)
+var (
+	// error
+	ErrNoChild      = errors.New("zk: children is nil")
+	ErrNodeNotExist = errors.New("zk: node not exist")
 )
 
 type Register struct {
@@ -86,6 +93,19 @@ func (r *Register) RegisterService(name string,data []byte)(string,error){
 		}
 	}()
 	return cpath,nil
+}
+
+func (r *Register) GetNodesW(path string){
+	for{
+		nodes,_,ch,err := r.Conn.ChildrenW(path)
+		if err != nil{
+			if err == zk.ErrNoNode{
+
+			}
+		}
+	}
+
+
 }
 
 func KillSelf(){

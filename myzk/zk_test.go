@@ -34,3 +34,13 @@ func TestRegister_ListTask(t *testing.T) {
 	}
 
 }
+
+func TestRegister_WatchNode(t *testing.T) {
+	conn,_ := Connect([]string{"47.93.233.6:2181"},time.Second * 10)
+	register,err := NewRegister(conn,"/LCSCRON")
+	if err != nil{
+		fmt.Println(err)
+		return
+	}
+	register.WatchNode("/LCSCRON")
+}
