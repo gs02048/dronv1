@@ -112,6 +112,7 @@ func (c *Cron) RemoveJob(name string) error{
 	for k, e := range c.entries {
 		if e.Name == name{
 			c.entries = append(c.entries[:k],c.entries[k+1:]...)
+			break
 		}
 	}
 	return nil

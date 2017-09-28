@@ -4,21 +4,20 @@ import "github.com/samuel/go-zookeeper/zk"
 
 type Election struct {
 	Conn *zk.Conn
-	Prefix string
 	Path string
 	IsMaster chan bool
 }
 
-func NewElection(conn *zk.Conn,prefix string) (*Election,error){
-	if err := createPath(prefix,[]byte(""),conn);err != nil{
-		return nil,err
-	}
-	return &Election{Conn:conn,Prefix:prefix},nil
+func NewElection(conn *zk.Conn) (*Election,error){
+	return &Election{Conn:conn},nil
 }
 
-func (e *Election) ElectMaster(path string)(err error){
+func (e *Election) ElectMaster(prefix,path string)(err error){
+	if err := createPath(prefix,[]byte(""),e.Conn);err != nil{
+		return err
+	}
 	e.Path = path
-	electpath := e.Prefix+"/"+path
+	electpath := prefix+"/"+path
 	var cpath string
 elect:
 	cpath,err = e.Conn.Create(electpath,nil,zk.FlagEphemeral,zk.WorldACL(zk.PermAll))

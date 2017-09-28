@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"os"
 	"errors"
-	"fmt"
 )
 var (
 	// error
@@ -23,16 +22,16 @@ type Register struct {
 	Prefix string
 }
 
-func NewRegister(conn *zk.Conn,prefix string)(*Register,error){
-	if err := createPath(prefix,[]byte(""),conn);err != nil{
-		return nil,err
-	}
-	return &Register{Conn:conn,Prefix:prefix},nil
+func NewRegister(conn *zk.Conn)(*Register,error){
+	return &Register{Conn:conn},nil
 }
 
-func (r *Register) RegisterTask(task *task.Task)(string,error){
+func (r *Register) RegisterTask(prefix string,task *task.Task)(string,error){
+	if err := createPath(prefix,[]byte(""),r.Conn);err != nil{
+		return "",err
+	}
 	var cpath string
-	path := r.Prefix+"/"+task.TaskName
+	path := prefix+"/"+task.TaskName
 	data,err := json.Marshal(task)
 	if err != nil{
 		return cpath,err
@@ -45,8 +44,8 @@ func (r *Register) RegisterTask(task *task.Task)(string,error){
 	return cpath,nil
 }
 
-func (r *Register)ListTask()([]*task.Task,error){
-	chs,_,err := r.Conn.Children(r.Prefix)
+func (r *Register)ListTask(prefix string)([]*task.Task,error){
+	chs,_,err := r.Conn.Children(prefix)
 	if err != nil{
 		return nil,err
 	}
@@ -54,7 +53,7 @@ func (r *Register)ListTask()([]*task.Task,error){
 
 	for k,v := range(chs){
 		item := &task.Task{}
-		line,_,err := r.Conn.Get(r.Prefix+"/"+v)
+		line,_,err := r.Conn.Get(prefix+"/"+v)
 		if err != nil{
 			continue
 		}
@@ -69,8 +68,11 @@ func (r *Register)ListTask()([]*task.Task,error){
 	return tasklist,nil
 }
 
-func (r *Register) RegisterService(name string,data []byte)(string,error){
-	path := r.Prefix+"/"+name
+func (r *Register) RegisterService(prefix,name string,data []byte)(string,error){
+	if err := createPath(prefix,[]byte(""),r.Conn);err != nil{
+		return "",err
+	}
+	path := prefix+"/"+name
 	cpath,err := r.Conn.Create(path,data,zk.FlagEphemeral,zk.WorldACL(zk.PermAll))
 	if err != nil{
 		return cpath,err
@@ -96,14 +98,14 @@ func (r *Register) RegisterService(name string,data []byte)(string,error){
 }
 
 func (r *Register) GetNodesW(path string){
-	for{
-		nodes,_,ch,err := r.Conn.ChildrenW(path)
-		if err != nil{
-			if err == zk.ErrNoNode{
-
-			}
-		}
-	}
+	//for{
+	//	nodes,_,ch,err := r.Conn.ChildrenW(path)
+	//	if err != nil{
+	//		if err == zk.ErrNoNode{
+	//
+	//		}
+	//	}
+	//}
 
 
 }

@@ -14,8 +14,7 @@ import (
 )
 type Admin struct {
 	Cfg *Config
-	ServiceReg *myzk.Register
-	TaskReg *myzk.Register
+	Register *myzk.Register
 }
 
 type Config struct {
@@ -33,9 +32,8 @@ func NewAdmin(cfg *Config)*Admin{
 		log.Error(err)
 		return nil
 	}
-	service_reg,err := myzk.NewRegister(zkconn,cfg.ZkServicePrefix)
-	task_reg,err := myzk.NewRegister(zkconn,cfg.ZkTaskPrefix)
-	return &Admin{Cfg:cfg,ServiceReg:service_reg,TaskReg:task_reg}
+	register,err := myzk.NewRegister(zkconn)
+	return &Admin{Cfg:cfg,Register:register}
 }
 
 func InitAdminHttp(a *Admin){
@@ -57,7 +55,7 @@ func InitAdminHttp(a *Admin){
 
 
 func (a *Admin)ListService(w http.ResponseWriter,r *http.Request){
-	list,err := a.TaskReg.ListTask()
+	list,err := a.Register.ListTask(a.Cfg.ZkServicePrefix)
 	if err != nil{
 
 	}
@@ -102,7 +100,7 @@ func (a *Admin)CreateService(w http.ResponseWriter,r *http.Request){
 		TaskType:tasktype,
 		MaxRunTime:maxruntime,
 	}
-	cpath,err := a.TaskReg.RegisterTask(t)
+	cpath,err := a.Register.RegisterTask(a.Cfg.ZkTaskPrefix,t)
 	res["cpath"] = cpath
 	res["err"] = err
 	return

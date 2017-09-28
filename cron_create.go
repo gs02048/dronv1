@@ -21,7 +21,7 @@ func StartCron(){
 			if m{
 				cronlist,_ := zk.ListCron(ZkConn)
 				for _,item := range(cronlist){
-					crontab.AddFunc(item.Spece,func(){
+					crontab.AddFunc(item.Spece,item.Name,func(){
 						cmd := exec.Command("/bin/sh","-c",item.Command)
 						output,_ := cmd.Output()
 						log.Info("result:%s",string(output))
