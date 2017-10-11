@@ -44,6 +44,21 @@ func (r *Register) RegisterTask(prefix string,task *task.Task)(string,error){
 	return cpath,nil
 }
 
+func (r *Register)GetTask(prefix string,name string)(*task.Task,error){
+	info,_,err := r.Conn.Get(prefix+"/"+name)
+	if err != nil{
+		return nil,err
+	}
+	item := &task.Task{}
+	if err = json.Unmarshal(info,item);err != nil{
+		return nil,err
+	}
+	if len(item.TaskName) <= 0{
+		return nil,ErrNodeNotExist
+	}
+	return item,nil
+}
+
 func (r *Register)ListTask(prefix string)([]*task.Task,error){
 	chs,_,err := r.Conn.Children(prefix)
 	if err != nil{
@@ -66,6 +81,21 @@ func (r *Register)ListTask(prefix string)([]*task.Task,error){
 		tasklist[k] = item
 	}
 	return tasklist,nil
+}
+
+func (r *Register) ListService(prefix string)([]string,error){
+	chs,_,err := r.Conn.Children(prefix)
+	if err != nil{
+		return nil,err
+	}
+	if len(chs) <= 0 {
+		return nil,ErrNoChild
+	}
+	servicelist := make([]string,len(chs))
+	for k,v := range(chs){
+		servicelist[k] = v
+	}
+	return servicelist,nil
 }
 
 func (r *Register) RegisterService(prefix,name string,data []byte)(string,error){

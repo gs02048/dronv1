@@ -1,24 +1,21 @@
 package main
 
 import (
-	"dronv1/admin"
-
-	//"fmt"
+	"dronv1/worker"
+	"dronv1/drond"
 	"time"
 )
 
 func main(){
-	cfg := &admin.Config{
-		HttpPort:"5890",
+	cfg := &drond.Config{
 		ZkTaskPrefix:"/LCSCRON",
 		ZkTimeout:time.Second * 10,
 		ZkServicePrefix:"/CRONSERVICE",
 		ZkAddrs:[]string{"localhost:2181"},
+
+		Electpre:"/CRONELECT",
+		Electpath:"MASTER",
 	}
 
-	ad := admin.NewAdmin(cfg)
-	admin.InitAdminHttp(ad)
-	select {
-
-	}
+	worker.Main(cfg)
 }

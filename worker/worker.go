@@ -10,6 +10,8 @@ import (
 	"errors"
 	"strings"
 	"encoding/json"
+	"dronv1/drond"
+	"dronv1/myzk"
 )
 
 /**
@@ -18,6 +20,10 @@ import (
 type Worker struct {
 	Count int32
 	Runing map[string]*Job
+
+	Config *drond.Config
+	Elect *myzk.Election
+	Register *myzk.Register
 }
 
 
@@ -32,11 +38,20 @@ type Job struct {
 }
 
 
-func NewWorker()*Worker{
+func NewWorker(cfg *drond.Config)*Worker{
 	runing := map[string]*Job{}
+	zkconn,err := myzk.Connect(cfg.ZkAddrs,cfg.ZkTimeout)
+	if err != nil{
+		return nil
+	}
+	register,err := myzk.NewRegister(zkconn)
+	elect,err := myzk.NewElection(zkconn)
 	return &Worker{
 		Count:0,
 		Runing:runing,
+		Config:cfg,
+		Elect:elect,
+		Register:register,
 	}
 }
 
