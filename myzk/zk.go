@@ -20,10 +20,11 @@ var (
 type Register struct {
 	Conn *zk.Conn
 	Prefix string
+	WatchEvent chan bool
 }
 
 func NewRegister(conn *zk.Conn)(*Register,error){
-	return &Register{Conn:conn},nil
+	return &Register{Conn:conn,WatchEvent:make(chan bool,1)},nil
 }
 
 func (r *Register) RegisterTask(prefix string,task *task.Task)(string,error){
@@ -127,17 +128,19 @@ func (r *Register) RegisterService(prefix,name string,data []byte)(string,error)
 	return cpath,nil
 }
 
-func (r *Register) GetNodesW(path string){
-	//for{
-	//	nodes,_,ch,err := r.Conn.ChildrenW(path)
-	//	if err != nil{
-	//		if err == zk.ErrNoNode{
-	//
-	//		}
-	//	}
-	//}
-
-
+func (r *Register) GetDirW(path string){
+	for{
+		_,_,ch,err := r.Conn.ChildrenW(path)
+		if err != nil{
+			return
+		}
+		select{
+			case  <-ch:
+				//if e.Type == zk.EventNodeChildrenChanged{
+					r.WatchEvent <- true
+				//}
+		}
+	}
 }
 
 func KillSelf(){

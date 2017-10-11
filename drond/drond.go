@@ -13,6 +13,7 @@ import (
 type DROND struct {
 	Elect *myzk.Election
 	Register *myzk.Register
+	ServiceList []string
 	Cfg *Config
 }
 
@@ -33,12 +34,30 @@ func New(cfg *Config)*DROND{
 	}
 	register,err := myzk.NewRegister(zkconn)
 	elect,err := myzk.NewElection(zkconn)
-	return &DROND{Register:register,Cfg:cfg,Elect:elect}
+	servicelist,err := register.ListService(cfg.ZkServicePrefix)
+	go register.GetDirW(cfg.ZkServicePrefix)
+	if err != nil{
+		servicelist = []string{}
+	}
+
+	return &DROND{Register:register,Cfg:cfg,Elect:elect,ServiceList:servicelist}
+}
+
+func (d *DROND)watchService(){
+	for{
+		select {
+			case e := <-d.Register.WatchEvent:
+				if e{
+					d.ServiceList,_ = d.Register.ListService(d.Cfg.ZkServicePrefix)
+				}
+		}
+	}
 }
 
 func (d *DROND)Main(){
 	rand.Seed(time.Now().UnixNano())
 	go d.Elect.ElectMaster(d.Cfg.Electpre,d.Cfg.Electpath)
+	go d.watchService()
 	for{
 		select {
 			case m := <-d.Elect.IsMaster:
@@ -48,7 +67,7 @@ func (d *DROND)Main(){
 					tasklist,_ := d.Register.ListTask(d.Cfg.ZkTaskPrefix)
 					for _,task := range(tasklist){
 						c.AddFunc(task.Spec,task.TaskName,func(){
-							d.callRemote(task.TaskName)
+							d.runRemote(task.TaskName)
 						})
 					}
 					c.Run()
@@ -60,14 +79,13 @@ func (d *DROND)Main(){
 	}
 }
 
-func (d *DROND)callRemote(name string){
-	list,err := d.Register.ListService(d.Cfg.ZkServicePrefix)
-	if err != nil{
-		log.Info(err)
+func (d *DROND)runRemote(name string){
+	if len(d.ServiceList) <= 0 {
+		log.Info("no service")
 		return
 	}
-	i := rand.Int() % len(list)
-	addr := list[i]
+	i := rand.Int() % len(d.ServiceList)
+	addr := d.ServiceList[i]
 	req,err := http.Get("http://"+addr+"/task?name="+name)
 	if err != nil{
 		log.Info(err)
