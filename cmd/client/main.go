@@ -1,14 +1,36 @@
 package main
 
 import (
-	"net/http"
-	"io/ioutil"
+	"github.com/samuel/go-zookeeper/zk"
+	"time"
 	"fmt"
 )
 
 func main(){
-	resp,_ := http.Get("http://localhost:5890/v1/put?taskname=test&desc=test&command=ls ../&spec=* * * * * *&tasktype=1&maxruntime=10")
-	defer resp.Body.Close()
-	data,_ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(data))
+	conn,_,err := zk.Connect([]string{"localhost:2181"},10*time.Second)
+	if err != nil{
+		fmt.Println(err)
+		return
+	}
+
+	for{
+		children,stat,event,err := conn.ChildrenW("/LCSCRON")
+		if err != nil{
+			fmt.Println(err)
+			continue
+		}
+		for _,v := range children{
+			fmt.Println(v)
+		}
+		fmt.Println("children num:",stat.NumChildren)
+
+
+		select {
+		case e:=<-event:
+			fmt.Println(e)
+
+		}
+	}
+
+
 }
