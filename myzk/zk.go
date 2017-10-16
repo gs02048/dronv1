@@ -128,7 +128,7 @@ func (r *Register) RegisterService(prefix,name string,data []byte)(string,error)
 	return cpath,nil
 }
 
-func (r *Register) GetDirW(path string){
+func (r *Register) GetDirW(path string) {
 	for{
 		_,_,ch,err := r.Conn.ChildrenW(path)
 		if err != nil{
@@ -136,9 +136,20 @@ func (r *Register) GetDirW(path string){
 		}
 		select{
 			case  <-ch:
-				//if e.Type == zk.EventNodeChildrenChanged{
-					r.WatchEvent <- true
-				//}
+				r.WatchEvent <- true
+		}
+	}
+}
+
+func (r *Register) GetDirWatchEvent(path string,event_chan chan bool) error{
+	for{
+		_,_,ch,err := r.Conn.ChildrenW(path)
+		if err != nil{
+			return err
+		}
+		select{
+		case  <-ch:
+			event_chan <- true
 		}
 	}
 }
